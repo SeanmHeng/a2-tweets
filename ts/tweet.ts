@@ -9,8 +9,20 @@ class Tweet {
 
 	//returns either 'live_event', 'achievement', 'completed_event', or 'miscellaneous'
     get source():string {
-        //TODO: identify whether the source is a live event, an achievement, a completed event, or miscellaneous.
-        return "unknown";
+        //Completed events use RunKeeper's default text, e.g. "Just completed a 4.87 km run..." or "Just posted a 10.34 km run..."
+        if (this.text.startsWith("Just completed") || this.text.startsWith("Just posted")) {
+            return "completed_event";
+        }
+        //Live events invite people to watch in real time, e.g. "Watch my run right now with @Runkeeper Live ... #RKLive"
+        if (this.text.startsWith("Watch my") || this.text.includes("#RKLive")) {
+            return "live_event";
+        }
+        //Achievements are personal records or newly set goals
+        if (this.text.startsWith("Achieved") || this.text.startsWith("I just set a goal")) {
+            return "achievement";
+        }
+        //Everything else is general RunKeeper-related discussion
+        return "miscellaneous";
     }
 
     //returns a boolean, whether the text includes any content written by the person tweeting.

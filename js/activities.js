@@ -57,14 +57,72 @@ function parseTweets(runkeeper_tweets) {
 	  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
 	  "description": "A graph of the number of Tweets containing each type of activity.",
 	  "data": {
-	    "values": tweet_array
+	    "values": activityData
+	  },
+	  //One bar per activity type, as tall as the number of tweets, sorted from most to least
+	  "mark": "bar",
+	  "encoding": {
+	    "x": {"field": "activityType", "type": "nominal", "sort": "-y", "title": "Activity type"},
+	    "y": {"aggregate": "count", "type": "quantitative", "title": "Number of tweets"}
 	  }
-	  //TODO: Add mark and encoding
 	};
 	vegaEmbed('#activityVis', activity_vis_spec, {actions:false});
 
-	//TODO: create the visualizations which group the three most-tweeted activities by the day of the week.
-	//Use those visualizations to answer the questions about which activities tended to be longest and when.
+	//Chart 2: every top 3 activity as a point, by day of the week (Sun to Sat)
+	distance_vis_spec = {
+	  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+	  "description": "Distances of the three most tweeted activities by day of the week.",
+	  "data": {
+	    "values": topThreeData
+	  },
+	  "mark": "point",
+	  "encoding": {
+	    "x": {"field": "time", "timeUnit": "day", "type": "ordinal", "title": "Day of the week"},
+	    "y": {"field": "distance", "type": "quantitative", "title": "Distance (mi)"},
+	    "color": {"field": "activityType", "type": "nominal", "title": "Activity type"}
+	  }
+	};
+	vegaEmbed('#distanceVis', distance_vis_spec, {actions:false});
+
+	//Chart 3: same as chart 2, but the y axis shows the mean distance for each day
+	distance_mean_vis_spec = {
+	  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+	  "description": "Mean distances of the three most tweeted activities by day of the week.",
+	  "data": {
+	    "values": topThreeData
+	  },
+	  "mark": "point",
+	  "encoding": {
+	    "x": {"field": "time", "timeUnit": "day", "type": "ordinal", "title": "Day of the week"},
+	    "y": {"field": "distance", "aggregate": "mean", "type": "quantitative", "title": "Mean distance (mi)"},
+	    "color": {"field": "activityType", "type": "nominal", "title": "Activity type"}
+	  }
+	};
+	vegaEmbed('#distanceVisAggregated', distance_mean_vis_spec, {actions:false});
+
+	//Start with the means chart hidden
+	let allChart = document.getElementById('distanceVis');
+	let meanChart = document.getElementById('distanceVisAggregated');
+	let toggleButton = document.getElementById('aggregate');
+	meanChart.style.display = 'none';
+
+	//Each click swaps which chart is shown and changes the button text
+	toggleButton.addEventListener('click', function() {
+		if (meanChart.style.display == 'none') {
+			meanChart.style.display = '';
+			allChart.style.display = 'none';
+			toggleButton.innerText = 'Show all activities';
+		} else {
+			meanChart.style.display = 'none';
+			allChart.style.display = '';
+			toggleButton.innerText = 'Show means';
+		}
+	});
+
+	//Answers read from the means chart (the one place typing values in is allowed)
+	document.getElementById('longestActivityType').innerText = 'bike';
+	document.getElementById('shortestActivityType').innerText = 'walk';
+	document.getElementById('weekdayOrWeekendLonger').innerText = 'weekends';
 }
 
 //Wait for the DOM to load

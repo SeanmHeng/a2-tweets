@@ -29,6 +29,30 @@ function parseTweets(runkeeper_tweets) {
 	document.getElementById('secondMost').innerText = sortedActivities[1][0];
 	document.getElementById('thirdMost').innerText = sortedActivities[2][0];
 
+	//Chart 1 data: one plain object per completed tweet, Vega-Lite counts them
+	let activityData = [];
+	for (let i = 0; i < tweet_array.length; i++) {
+		if (tweet_array[i].source == 'completed_event') {
+			activityData.push({activityType: tweet_array[i].activityType});
+		}
+	}
+
+	//Charts 2 and 3 data: the names of the 3 most tweeted activities
+	let topThree = [sortedActivities[0][0], sortedActivities[1][0], sortedActivities[2][0]];
+
+	//One plain object per completed tweet of a top 3 activity, with its distance and time
+	let topThreeData = [];
+	for (let i = 0; i < tweet_array.length; i++) {
+		let tweet = tweet_array[i];
+		if (tweet.source == 'completed_event' && topThree.includes(tweet.activityType)) {
+			topThreeData.push({
+				activityType: tweet.activityType,
+				distance: tweet.distance,
+				time: tweet.time
+			});
+		}
+	}
+
 	activity_vis_spec = {
 	  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
 	  "description": "A graph of the number of Tweets containing each type of activity.",

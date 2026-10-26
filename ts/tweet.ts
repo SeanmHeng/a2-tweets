@@ -9,7 +9,7 @@ class Tweet {
 
 	//returns either 'live_event', 'achievement', 'completed_event', or 'miscellaneous'
     get source():string {
-        //Completed events use RunKeeper's default text, e.g. "Just completed a 4.87 km run..." or "Just posted a 10.34 km run..."
+       
         if (this.text.startsWith("Just completed") || this.text.startsWith("Just posted")) {
             return "completed_event";
         }
@@ -27,32 +27,70 @@ class Tweet {
 
     //returns a boolean, whether the text includes any content written by the person tweeting.
     get written():boolean {
-        //TODO: identify whether the tweet is written
-        return false;
+        // Only completed events can have user text. RunKeeper's default text says "Check it out!"; when the user wrote something, it replaces that with " - " followed by their words
+        return this.source == "completed_event" && this.text.includes(" - ");
     }
 
     get writtenText():string {
         if(!this.written) {
             return "";
         }
-        //TODO: parse the written text from the tweet
-        return "";
+        // Strip the t.co link and the hashtag, then keep everything after the first " - "
+        const cleaned = this.text.replace(/https:\/\/t\.co\/\w+/g, "").replace("#Runkeeper", "");
+        return cleaned.substring(cleaned.indexOf(" - ") + 3).trim();
+    }
+
+    private get hasDistance():boolean {
+        //split the tweet into a list of words
+        const words = this.text.split(" ");
+        const unit = words[4];
+        return !isNaN(parseFloat(words[3])) && (unit == "km" || unit == "mi");
     }
 
     get activityType():string {
         if (this.source != 'completed_event') {
             return "unknown";
         }
-        //TODO: parse the activity type from the text of the tweet
-        return "";
+        //split the tweet into a list of words
+        const words = this.text.split(" ");
+
+        //the activity name starts at word 5 if there is a distance, otherwise at word 3
+        const start = this.hasDistance ? 5 : 3;
+        //the words that make up the activity name
+        const activityWords:string[] = [];
+
+        //add words to the name until we reach a word that ends it
+        for (let i = start; i < words.length; i++) {
+            const word = words[i];
+            const isTimeMarker = !this.hasDistance && word == "in";
+            if (word == "with" || word == "-" || isTimeMarker || word.startsWith("https")) {
+                break;
+            }
+            activityWords.push(word);
+        }
+
+        //no words found, so we don't know the activity
+        if (activityWords.length == 0) {
+            return "unknown";
+        }
+        //join the words back into one name
+        return activityWords.join(" ");
     }
 
     get distance():number {
-        if(this.source != 'completed_event') {
+        //only completed tweets with a distance have one, otherwise it is 0
+        if(this.source != 'completed_event' || !this.hasDistance) {
             return 0;
         }
-        //TODO: prase the distance from the text of the tweet
-        return 0;
+        const words = this.text.split(" ");
+        //turn the number text into a real number
+        const value = parseFloat(words[3]);
+
+        //Convert kilometers to miles so all distances use one unit
+        if (words[4] == "km") {
+            return value / 1.609;
+        }
+        return value;
     }
 
     getHTMLTableRow(rowNumber:number):string {

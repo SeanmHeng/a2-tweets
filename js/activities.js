@@ -9,7 +9,25 @@ function parseTweets(runkeeper_tweets) {
 		return new Tweet(tweet.text, tweet.created_at);
 	});
 
-	//TODO: create a new array or manipulate tweet_array to create a graph of the number of tweets containing each type of activity.
+	//Count tweets per activity type, completed events only
+	let counts = {};
+	for (let i = 0; i < tweet_array.length; i++) {
+		if (tweet_array[i].source == 'completed_event') {
+			let type = tweet_array[i].activityType;
+			counts[type] = (counts[type] || 0) + 1;
+		}
+	}
+
+	//Sort the activity types from most to least tweeted
+	let sortedActivities = Object.entries(counts).sort(function(a, b) {
+		return b[1] - a[1];
+	});
+
+	//Show the number of activity types and the top 3 on the page
+	document.getElementById('numberActivities').innerText = sortedActivities.length;
+	document.getElementById('firstMost').innerText = sortedActivities[0][0];
+	document.getElementById('secondMost').innerText = sortedActivities[1][0];
+	document.getElementById('thirdMost').innerText = sortedActivities[2][0];
 
 	activity_vis_spec = {
 	  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",

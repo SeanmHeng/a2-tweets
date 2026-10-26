@@ -25,7 +25,7 @@ function parseTweets(runkeeper_tweets) {
 		miscellaneous: 0
 	};
 
-	//Find the earliest and latest tweet dates
+	// Find the earliest and latest tweet dates
 	for(let i = 1; i < tweet_array.length; i++){
 		if(tweet_array[i].time < earliest.time){
 			earliest = tweet_array[i];
@@ -57,14 +57,14 @@ function parseTweets(runkeeper_tweets) {
 			day: 'numeric'
 		});
 
-	//Fills every element with the given class (some classes appear more than once)
+	//Fills every element with the given class
 	function setText(className, value) {
 		document.querySelectorAll('.' + className).forEach(function(el) {
 			el.innerText = value;
 		});
 	}
 
-	//Formats a count as a percentage of all tweets with exactly 2 decimals
+	// Formats a count as a percentage of all tweets with exactly 2 decimals
 	function percent(count) {
 		return math.format(count / tweet_array.length * 100, {notation: 'fixed', precision: 2}) + '%';
 	}
@@ -77,6 +77,16 @@ function parseTweets(runkeeper_tweets) {
 	setText('achievementsPct', percent(counts.achievement));
 	setText('miscellaneous', counts.miscellaneous);
 	setText('miscellaneousPct', percent(counts.miscellaneous));
+
+	//Count the completed events that include user-written text (percent is out of completed events, not all tweets)
+	let writtenCount = 0;
+	for (let i = 0; i < tweet_array.length; i++) {
+		if (tweet_array[i].written) {
+			writtenCount++;
+		}
+	}
+	setText('written', writtenCount);
+	setText('writtenPct', math.format(writtenCount / counts.completed_event * 100, {notation: 'fixed', precision: 2}) + '%');
 	
 }
 

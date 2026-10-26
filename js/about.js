@@ -17,6 +17,14 @@ function parseTweets(runkeeper_tweets) {
 	let earliest = tweet_array[0];
 	let latest = tweet_array[0];
 
+	// sets up variables to store event type
+	let counts = {
+		completed_event: 0,
+		live_event: 0,
+		achievement: 0,
+		miscellaneous: 0
+	};
+
 	//Find the earliest and latest tweet dates
 	for(let i = 1; i < tweet_array.length; i++){
 		if(tweet_array[i].time < earliest.time){
@@ -27,6 +35,11 @@ function parseTweets(runkeeper_tweets) {
 		}
 	}
 
+	// Decoupled the loops to keep logic readable
+	// this classifies the tweets into event types
+	for (let i = 0; i < tweet_array.length; i++) {
+		counts[tweet_array[i].source]++;
+	}
 	document.getElementById('firstDate').innerText = earliest.time.toLocaleDateString(
 		'en-US', 
 		{
@@ -43,6 +56,28 @@ function parseTweets(runkeeper_tweets) {
 			month: 'long', 
 			day: 'numeric'
 		});
+
+	//Fills every element with the given class (some classes appear more than once)
+	function setText(className, value) {
+		document.querySelectorAll('.' + className).forEach(function(el) {
+			el.innerText = value;
+		});
+	}
+
+	//Formats a count as a percentage of all tweets with exactly 2 decimals
+	function percent(count) {
+		return math.format(count / tweet_array.length * 100, {notation: 'fixed', precision: 2}) + '%';
+	}
+
+	setText('completedEvents', counts.completed_event);
+	setText('completedEventsPct', percent(counts.completed_event));
+	setText('liveEvents', counts.live_event);
+	setText('liveEventsPct', percent(counts.live_event));
+	setText('achievements', counts.achievement);
+	setText('achievementsPct', percent(counts.achievement));
+	setText('miscellaneous', counts.miscellaneous);
+	setText('miscellaneousPct', percent(counts.miscellaneous));
+	
 }
 
 //Wait for the DOM to load
